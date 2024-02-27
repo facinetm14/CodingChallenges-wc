@@ -1,12 +1,16 @@
 import { readFile } from 'fs/promises';
+import { MAX_INPUT, DASH } from './const';
+import { parseArgs, mapOptionToFunction, counter } from './wc';
 
+// excluding the command to run the prog : node dist/index.js
 const args: string[] = process.argv.slice(2);
-console.log(`FILENAME: ${args.length}`);
 
 const run = async () => {
-    try {
-      const data = await readFile(args[0], 'utf8');
-      console.log(data);
+  const { option, input } = parseArgs(args);
+  try {
+    const data = await readFile(input);
+    const optionFunction = mapOptionToFunction(option.substring(1));  
+    console.log(counter[optionFunction](data.toString()));
   }
   catch (error) {
       console.log(error);
