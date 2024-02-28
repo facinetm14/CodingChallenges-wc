@@ -1,6 +1,6 @@
 "use strict";
 import { parse } from 'path';
-import { parseArgs, counter } from '../src/wc';
+import { parseArgs, counter, countStrBySeparator } from '../src/wc';
 
 describe("testing parseArgs", () => {
   it("it should return -wc as option and text.txt as input when ['-c', 'text.txt']", () => {
@@ -28,11 +28,11 @@ describe("testing parseArgs", () => {
   });
 });
 
-describe('testing counterline', () => {
-  it('should return 3 when data="line1\nline2\nline3"', () => {
-    const data = "line1\nline2\nline3";
+describe('testing countStrBySeparator', () => {
+  it('should return 3 when data="line1\nline2\nline3\n"', () => {
+    const data = "line1\nline2\nline3\n";
     
-    const lines = counter.countLine(data);
+    const lines = countStrBySeparator(data, 0, "\n");
 
     expect(lines).toBe(3);
   });

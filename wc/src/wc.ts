@@ -1,4 +1,7 @@
+import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { MAX_INPUT, DASH } from './const';
+import { resolve } from 'path';
+
 
 const parseArgs = (args: string[]): { option: string, input: string } => {
   if (!args.length || args.length > MAX_INPUT) throw new Error('Invalid Arguments');
@@ -19,8 +22,9 @@ const optionsMap: {
   [key: string]: string;
 } = {
   c: 'countBytes',
+  l: 'countLine',
   w: 'countWord',
-  l: 'countLine'
+  m: 'countCharacter'
 };
 
 const mapOptionToFunction = (option: string): string => {
@@ -30,18 +34,103 @@ const mapOptionToFunction = (option: string): string => {
   throw new Error('Invalid option');
 };
 
-const countBytes = (data: string) => {
-  return data.length;
+const countBytes = async (dataStream: ReadStream) => {
+  const result = new Promise((resolve, reject) => {
+    let nbBytes = 0;
+
+      dataStream.on('data', (chunk) => {
+        nbBytes += chunk.length;
+    });
+
+    dataStream.on('end', () => {
+      resolve(nbBytes);
+    });
+
+    dataStream.on('error', (error) => {
+      reject(error);
+    });
+  });
+  return await result;
 }
 
-const countLine = (data: string) => {
-  return data.split('\n').filter((el: string) => el != "").length;
+const countStrBySeparator = (str: string, start: number, separator: string): number => {
+  let idx = -1;
+  for (let i = start; i < str.length; i++) {
+    if (separator.includes(str[i])) {
+      idx = i;
+      break;
+    }
+  }
+
+  if (start < idx) {
+    return 1 + countStrBySeparator(str, idx + 1, separator);
+  }
+  return 0;
 }
 
+const countLine = async (dataStream: ReadStream) => {
+  const result = new Promise((resolve, reject) => {
+    let nbLines = 0;
+
+    dataStream.on('data', (chunk) => {
+      nbLines += countStrBySeparator(chunk.toString(), 0, "\n");
+    });
+
+    dataStream.on('end', () => {
+      resolve(nbLines);
+    });
+
+    dataStream.on('error', (error) => {
+      reject(error);
+    });
+  });
+  return await result;
+}
+
+const countWord = async (dataStream: ReadStream) => {
+  const result = new Promise((resolve, reject) => {
+    let nbWords = 0;
+
+    dataStream.on('data', (chunk) => {
+      nbWords += countStrBySeparator(chunk.toString(), 0, "\t");
+    });
+
+    dataStream.on('end', () => {
+      resolve(nbWords);
+    });
+
+    dataStream.on('error', (error) => {
+      reject(error);
+    });
+  });
+  return await result;
+}
+
+const countCharacter = async (dataStream: ReadStream) => {
+  const result = new Promise((resolve, reject) => {
+    let nbChars = 0;
+
+      dataStream.on('data', (chunk) => {
+        nbChars += chunk.toString().length;
+    });
+
+    dataStream.on('end', () => {
+      resolve(nbChars);
+    });
+
+    dataStream.on('error', (error) => {
+      reject(error);
+    });
+  });
+
+  return await result;
+}
 const counter: {
   [key: string]: any,
 } = {
-  countBytes: countBytes,
-  countLine: countLine
+  countBytes,
+  countLine,
+  countWord,
+  countCharacter
 };
-export { parseArgs, mapOptionToFunction, counter };
+export { parseArgs, mapOptionToFunction, counter, countStrBySeparator };

@@ -1,4 +1,4 @@
-import { readFile } from 'fs/promises';
+import { createReadStream } from 'fs';
 import { MAX_INPUT, DASH } from './const';
 import { parseArgs, mapOptionToFunction, counter } from './wc';
 
@@ -8,9 +8,10 @@ const args: string[] = process.argv.slice(2);
 const run = async () => {
   const { option, input } = parseArgs(args);
   try {
-    const data = await readFile(input);
-    const optionFunction = mapOptionToFunction(option.substring(1));  
-    console.log(counter[optionFunction](data.toString()));
+    const optionFunction = mapOptionToFunction(option.substring(1));
+    const dataStream = createReadStream(input);
+    const result = await counter[optionFunction](dataStream);
+    console.log(result);
   }
   catch (error) {
       console.log(error);
