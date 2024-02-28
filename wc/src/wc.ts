@@ -14,7 +14,6 @@ const parseArgs = (args: string[]): { option: string, input: string } => {
     option = input;
     input = tmp;
   }
-
   return { option, input };
 }
 
@@ -53,27 +52,21 @@ const countBytes = async (dataStream: ReadStream) => {
   return await result;
 }
 
-const countStrBySeparator = (str: string, start: number, separator: string): number => {
-  let idx = -1;
-  for (let i = start; i < str.length; i++) {
-    if (separator.includes(str[i])) {
-      idx = i;
-      break;
-    }
-  }
-
-  if (start < idx) {
-    return 1 + countStrBySeparator(str, idx + 1, separator);
-  }
-  return 0;
-}
-
 const countLine = async (dataStream: ReadStream) => {
+
+  const count = (str: string, start: number): number => {
+    const idx = str.indexOf("\n", start);
+
+    if (start < idx) {
+      return 1 + count(str, idx + 1);
+    }
+    return 0;
+  }
   const result = new Promise((resolve, reject) => {
     let nbLines = 0;
 
     dataStream.on('data', (chunk) => {
-      nbLines += countStrBySeparator(chunk.toString(), 0, "\n");
+      nbLines += count(chunk.toString(), 0);
     });
 
     dataStream.on('end', () => {
@@ -88,11 +81,33 @@ const countLine = async (dataStream: ReadStream) => {
 }
 
 const countWord = async (dataStream: ReadStream) => {
+  const separator = " \t\n\v\f\r";
   const result = new Promise((resolve, reject) => {
     let nbWords = 0;
+    let cursor = 0;
+    let buffer = '';
+
+    const count = (str: string): number => {
+      let nbWords = 0;
+      let i = cursor;
+      while (i < str.length) {
+        while (separator.includes(str[i]) && i < str.length) {
+          i++;
+        }
+        const wordStart = i;
+        while (!separator.includes(str[i]) && i < str.length) {
+          i++;
+        }
+        const wordEnd = i;
+        if (wordEnd != cursor && wordStart != cursor) nbWords++;
+      }
+      cursor = i;
+      return nbWords;
+    }
 
     dataStream.on('data', (chunk) => {
-      nbWords += countStrBySeparator(chunk.toString(), 0, "\t");
+      buffer += chunk;
+      nbWords += count(buffer);
     });
 
     dataStream.on('end', () => {
@@ -133,4 +148,4 @@ const counter: {
   countWord,
   countCharacter
 };
-export { parseArgs, mapOptionToFunction, counter, countStrBySeparator };
+export { parseArgs, mapOptionToFunction, counter };
