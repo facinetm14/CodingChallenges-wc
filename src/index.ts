@@ -13,10 +13,7 @@ const run = async () => {
   try {
     const optionFunction = mapOptionToFunction(option.substring(1));
     let dataStream;
-    if (inFileExist(input)) {
-      console.log("BIEN");
-      dataStream = createReadStream(input);
-    }
+    if (inFileExist(input)) dataStream = createReadStream(input);
     else dataStream = Readable.from(process.stdin);
     const result = await counter[optionFunction](dataStream);
     console.log(result);
