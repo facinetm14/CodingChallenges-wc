@@ -24,7 +24,6 @@ const optionsMap: {
   w: 'countWords',
   m: 'countCharacters'
 };
-
 const mapOptionToFunction = (option: string): string => {
   if (option in optionsMap) {
     return optionsMap[option];
