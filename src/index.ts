@@ -13,6 +13,14 @@ const reoppen = (infile: string) => {
   return Readable.from(process.stdin);
 }
 
+const execDefaultOptions = async (dataStream: any, infile: string) => {
+    const lines = await counter['countLines'](dataStream);
+    const bytes = await counter['countBytes'](reoppen(infile));
+    const words = await counter['countWords'](reoppen(infile));
+
+    console.log(`${lines} ${words} ${bytes}  ${infile ?? ''}`);
+}
+
 const run = async () => {
   const { option, infile } = parseArgs(args);
   try {
@@ -28,12 +36,7 @@ const run = async () => {
       console.log(`${result}  ${infile ?? ''}`);
       return;
     }
-
-    const lines = await counter['countLines'](dataStream);
-    const bytes = await counter['countBytes'](reoppen(infile));
-    const words = await counter['countWords'](reoppen(infile));
-
-    console.log(`${lines} ${words} ${bytes}  ${infile ?? ''}`);
+    await execDefaultOptions(dataStream, infile);
   }
   catch (error) {
       console.log(error);
