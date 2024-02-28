@@ -1,6 +1,6 @@
 # CodingChallenges-Wc
 This project consists of building a program simulating wc command.<br/>
-Thanks🙏 to <a href="https://www.linkedin.com/in/johncrickett/">John Crickett</a> ! It's one his coding challenges helping software engineers to improve their skills.</br>
+Thanks🙏 to <a href="https://www.linkedin.com/in/johncrickett/">John Crickett</a> ! It's one of his coding challenges helping software engineers to improve their skills.</br>
 You can find more about the challenges here👉 <a href="https://codingchallenges.fyi/challenges/challenge-wc">https://codingchallenges.fyi/challenges/challenge-wc/</a>
 
 ## Technos:
