@@ -3,27 +3,26 @@ import { MAX_INPUT, DASH } from './const';
 import { resolve } from 'path';
 
 
-const parseArgs = (args: string[]): { option: string, input: string } => {
+const parseArgs = (args: string[]): { option: string, infile: string } => {
   if (!args.length || args.length > MAX_INPUT) throw new Error('Invalid Arguments');
   
-  let [option, input] = args;
-  if (option.charAt(0) !== DASH && input.charAt(0) !== DASH) throw new Error('Invalid Arguments');
-
-  if (option.charAt(0) !== DASH) {
-    const tmp = option;
-    option = input;
-    input = tmp;
+  let [option, infile] = args;
+  
+  if (option.charAt(0) !== DASH && !infile) return { option: '', infile: option };
+  
+  if (option.charAt(0) !== DASH && infile.charAt(0) === DASH) {
+    return { option: infile, infile: option };
   }
-  return { option, input };
+  return { option, infile }
 }
 
 const optionsMap: {
   [key: string]: string;
 } = {
   c: 'countBytes',
-  l: 'countLine',
-  w: 'countWord',
-  m: 'countCharacter'
+  l: 'countLines',
+  w: 'countWords',
+  m: 'countCharacters'
 };
 
 const mapOptionToFunction = (option: string): string => {
@@ -52,7 +51,7 @@ const countBytes = async (dataStream: ReadStream) => {
   return await result;
 }
 
-const countLine = async (dataStream: ReadStream) => {
+const countLines = async (dataStream: ReadStream) => {
 
   const count = (str: string, start: number): number => {
     const idx = str.indexOf("\n", start);
@@ -80,7 +79,7 @@ const countLine = async (dataStream: ReadStream) => {
   return await result;
 }
 
-const countWord = async (dataStream: ReadStream) => {
+const countWords = async (dataStream: ReadStream) => {
   const separator = " \t\n\v\f\r";
   const result = new Promise((resolve, reject) => {
     let nbWords = 0;
@@ -121,7 +120,7 @@ const countWord = async (dataStream: ReadStream) => {
   return await result;
 }
 
-const countCharacter = async (dataStream: ReadStream) => {
+const countCharacters = async (dataStream: ReadStream) => {
   const result = new Promise((resolve, reject) => {
     let nbChars = 0;
 
@@ -144,8 +143,8 @@ const counter: {
   [key: string]: any,
 } = {
   countBytes,
-  countLine,
-  countWord,
-  countCharacter
+  countLines,
+  countWords,
+  countCharacters
 };
 export { parseArgs, mapOptionToFunction, counter };

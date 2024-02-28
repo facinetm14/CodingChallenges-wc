@@ -1,22 +1,34 @@
-import { createReadStream } from 'fs';
+import { ReadStream, createReadStream } from 'fs';
 import { MAX_INPUT, DASH } from './const';
 import { parseArgs, mapOptionToFunction, counter } from './wc';
 import { Readable } from 'stream';
 
 // excluding the command to run the prog : node dist/index.js
+const exist = (input: string) => input !== undefined && input != '';
+
+const reoppen = (infile: string) => {
+  if (exist(infile)) return createReadStream(infile);
+  return Readable.from(process.stdin);
+}
 const args: string[] = process.argv.slice(2);
 
 const run = async () => {
-  const inFileExist = (infile: string) => infile !== undefined;
-  
-  const { option, input } = parseArgs(args);
+  const { option, infile } = parseArgs(args);
   try {
-    const optionFunction = mapOptionToFunction(option.substring(1));
     let dataStream;
-    if (inFileExist(input)) dataStream = createReadStream(input);
+    if (exist(infile)) dataStream = createReadStream(infile);
     else dataStream = Readable.from(process.stdin);
-    const result = await counter[optionFunction](dataStream);
-    console.log(result);
+    if (exist(option)) {
+      const optionFunction = mapOptionToFunction(option.substring(1));
+      const result = await counter[optionFunction](dataStream);
+      console.log(`${result}  ${infile ?? ''}`);
+      return;
+    }
+    const lines = await counter['countLines'](dataStream);
+    const bytes = await counter['countBytes'](reoppen(infile));
+    const words = await counter['countWords'](reoppen(infile));
+
+    console.log(`${lines} ${words} ${bytes}  ${infile ?? ''}`);
   }
   catch (error) {
       console.log(error);
